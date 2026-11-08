@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: GameOps Mini API
+  version: 1.0.0
+  description: Region-aware game announcements service for overseas game operations.
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        '200': { description: Service is healthy }
+  /api/games:
+    get:
+      summary: List games
+      responses:
+        '200': { description: A list of games }
+    post:
+      summary: Create a game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameInput'
+      responses:
+        '201': { description: Game created }
+  /api/games/{gameId}/announcements:
+    get:
+      summary: List announcements for a game
+      parameters:
+        - { name: gameId, in: path, required: true, schema: { type: integer } }
+        - { name: region, in: query, schema: { type: string, example: US } }
+        - { name: language, in: query, schema: { type: string, example: en } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: page_size, in: query, schema: { type: integer, default: 10, maximum: 100 } }
+      responses:
+        '200': { description: Paginated announcements }
+  /api/admin/announcements:
+    post:
+      summary: Publish an announcement
+      security: [{ bearerAuth: [] }]
+      responses:
+        '201': { description: Announcement created }
+        '401': { description: Invalid administrator token }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    GameInput:
+      type: object
+      required: [name, region]
+      properties:
+        name: { type: string }
+        region: { type: string }
